@@ -16,7 +16,8 @@
                             <option value="">-- เลือกจุดขึ้นรถ --</option>
                             @isset($places)
                                 @foreach ($places as $p)
-                                    <option value="{{ $p->place_id }}" {{ (string) $originId === (string) $p->place_id ? 'selected' : '' }}>
+                                    <option value="{{ $p->place_id }}"
+                                        {{ (string) $originId === (string) $p->place_id ? 'selected' : '' }}>
                                         {{ $p->name }}
                                     </option>
                                 @endforeach
@@ -36,7 +37,8 @@
                             <option value="">-- เลือกจุดลงรถ --</option>
                             @isset($places)
                                 @foreach ($places as $p)
-                                    <option value="{{ $p->place_id }}" {{ (string) $destId === (string) $p->place_id ? 'selected' : '' }}>
+                                    <option value="{{ $p->place_id }}"
+                                        {{ (string) $destId === (string) $p->place_id ? 'selected' : '' }}>
                                         {{ $p->name }}
                                     </option>
                                 @endforeach
@@ -84,7 +86,8 @@
                                     aria-controls="routeDetail{{ $i }}">
                                     แสดงรายละเอียด
                                 </button>
-                                <a class="btn btn-primary btn-sm" href="{{ route('reservation.create', ['trip_id' => $r['trip_id'] ?? null, 'origin' => $originId, 'destination' => $destId]) }}">เลือกเส้นทางนี้</a>
+                                <a class="btn btn-primary btn-sm"
+                                    href="{{ route('reservation.create', ['trip_id' => $r['trip_id'] ?? null, 'origin' => $originId, 'destination' => $destId]) }}">เลือกเส้นทางนี้</a>
                             </div>
                         </div>
 
@@ -291,34 +294,34 @@
 @endpush
 
 @push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const originSel = document.querySelector('select[name="origin"]');
-        const destSel = document.querySelector('select[name="destination"]');
-        const swapBtn = document.getElementById('swapOriginDest');
-        if (!originSel || !destSel) return;
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const originSel = document.querySelector('select[name="origin"]');
+            const destSel = document.querySelector('select[name="destination"]');
+            const swapBtn = document.getElementById('swapOriginDest');
+            if (!originSel || !destSel) return;
 
-        function syncDisable(source, target) {
-            const val = source.value;
-            Array.from(target.options).forEach(opt => {
-                if (opt.value !== '') opt.disabled = false;
-            });
-            if (val) {
-                const same = Array.from(target.options).find(o => o.value === val);
-                if (same) {
-                    same.disabled = true;
-                    if (target.value === val) target.value = '';
+            function syncDisable(source, target) {
+                const val = source.value;
+                Array.from(target.options).forEach(opt => {
+                    if (opt.value !== '') opt.disabled = false;
+                });
+                if (val) {
+                    const same = Array.from(target.options).find(o => o.value === val);
+                    if (same) {
+                        same.disabled = true;
+                        if (target.value === val) target.value = '';
+                    }
                 }
             }
-        }
 
-        syncDisable(originSel, destSel);
-        syncDisable(destSel, originSel);
-        originSel.addEventListener('change', () => syncDisable(originSel, destSel));
-        destSel.addEventListener('change', () => syncDisable(destSel, originSel));
+            syncDisable(originSel, destSel);
+            syncDisable(destSel, originSel);
+            originSel.addEventListener('change', () => syncDisable(originSel, destSel));
+            destSel.addEventListener('change', () => syncDisable(destSel, originSel));
 
             if (swapBtn) {
-                swapBtn.addEventListener('click', function () {
+                swapBtn.addEventListener('click', function() {
                     const o = originSel.value;
                     originSel.value = destSel.value;
                     destSel.value = o;
@@ -327,6 +330,6 @@
                     syncDisable(destSel, originSel);
                 });
             }
-    });
-</script>
+        });
+    </script>
 @endpush

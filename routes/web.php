@@ -4,6 +4,7 @@ use App\Http\Controllers\DriverTripController;
 use App\Http\Controllers\UserTripController;
 use App\Http\Controllers\Auth\UserLoginController;
 use App\Http\Controllers\Auth\EmployeeLoginController;
+use App\Http\Controllers\DriverScheduleController;
 use App\Http\Controllers\UserReservationController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,3 +45,6 @@ Route::post('/driver/logout', [EmployeeLoginController::class, 'logout'])
 Route::middleware('employee.auth')->group(function () {
     Route::get('/driver', [DriverTripController::class, 'tripListPage'])->name('driver.trip-list');
 });
+
+// Use schedule() instead of driverSchedule()
+Route::get('/driver/schedule', [DriverScheduleController::class, 'schedule'])->name('driver.schedule');
