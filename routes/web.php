@@ -43,8 +43,26 @@ Route::post('/driver/logout', [EmployeeLoginController::class, 'logout'])
 
 // Driver Area (requires employee auth + driver position)
 Route::middleware('employee.auth')->group(function () {
-    Route::get('/driver', [DriverTripController::class, 'tripListPage'])->name('driver.trip-list');
+    // เฉพาะกลุ่ม 'driver' ใต้ middleware การยืนยันตัวตนของพนักงาน/คนขับ
+    Route::prefix('driver')->middleware(['auth:employee'])->group(function () {
+        // ตารางงานคนขับ (รายวัน)
+        Route::get('/schedule', [DriverScheduleController::class, 'index'])->name('driver.schedule');
+
+        // เริ่มงาน
+        Route::post('/schedule/{trip}/start', [DriverScheduleController::class, 'start'])->name('driver.schedule.start');
+
+        // หน้าระหว่างวิ่ง (ใช้ view เดิมไฟล์เดียว: schedule.blade.php โดยสลับโหมดแสดงผล)
+        Route::get('/schedule/{trip}', [DriverScheduleController::class, 'show'])->name('driver.schedule.show');
+
+        // สแกน/เช็คอิน (รับโค้ดจาก modal กล้องหรือกรอกมือ)
+        Route::post('/schedule/{trip}/scan', [DriverScheduleController::class, 'scan'])->name('driver.schedule.scan');
+
+        // สรุปก่อนปิดงาน (ใช้ view เดิมไฟล์เดียว สลับโหมด)
+        Route::get('/schedule/{trip}/close', [DriverScheduleController::class, 'closeForm'])->name('driver.schedule.close.form');
+
+        // ยืนยันปิดงาน
+        Route::post('/schedule/{trip}/close', [DriverScheduleController::class, 'close'])->name('driver.schedule.close');
+    });
 });
 
 // Use schedule() instead of driverSchedule()
-Route::get('/driver/schedule', [DriverScheduleController::class, 'schedule'])->name('driver.schedule');

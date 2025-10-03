@@ -86,8 +86,20 @@
                                     aria-controls="routeDetail{{ $i }}">
                                     แสดงรายละเอียด
                                 </button>
-                                <a class="btn btn-primary btn-sm"
-                                    href="{{ route('reservation.create', ['trip_id' => $r['trip_id'] ?? null, 'origin' => $originId, 'destination' => $destId]) }}">เลือกเส้นทางนี้</a>
+                                @php($leftSeats = ($r['seats']['left'] ?? null))
+                                @php($canBook = (($r['status'] ?? 'scheduled') === 'scheduled') && (is_null($leftSeats) ? true : ($leftSeats > 0)))
+                                @if ($canBook)
+                                    <a class="btn btn-primary btn-sm"
+                                        href="{{ route('reservation.create', ['trip_id' => $r['trip_id'] ?? null, 'origin' => $originId, 'destination' => $destId]) }}">เลือกเส้นทางนี้</a>
+                                @else
+                                    @if (($r['status'] ?? '') === 'ongoing')
+                                        <span class="badge bg-secondary">กำลังวิ่ง</span>
+                                    @elseif (!is_null($leftSeats) && $leftSeats <= 0)
+                                        <span class="badge bg-danger">ที่นั่งเต็ม</span>
+                                    @else
+                                        <span class="badge bg-light text-dark">ไม่เปิดจอง</span>
+                                    @endif
+                                @endif
                             </div>
                         </div>
 

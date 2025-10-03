@@ -22,7 +22,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-semibold" href="{{ route('driver.trip-list') }}">Shuttle Bus - Driver</a>
+            <a class="navbar-brand fw-semibold" href="{{ route('driver.schedule') }}">Shuttle Bus - Driver</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDriverAuth"
                 aria-controls="navbarDriverAuth" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>

@@ -36,9 +36,9 @@ class UserTripController extends Controller
         // เงื่อนไขพื้นฐานของ trips ตามวัน/สถานะ/ที่นั่งเหลือ และ cutoff สำหรับวันนี้
         $baseQuery = MpTrip::query()
             ->with(['vehicle.type', 'route'])
-            ->where('service_date', $date)
-            ->where('status', 'scheduled')
-            ->whereColumn('mp_trips.capacity', '>', 'mp_trips.reserved_seats');
+            ->whereRaw("TRUNC(mp_trips.service_date) = TO_DATE(?, 'YYYY-MM-DD')", [$date])
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->whereRaw('mp_trips.capacity > NVL(mp_trips.reserved_seats, 0)');
 
         if ($cutoffTime) {
             $baseQuery->where('mp_trips.depart_time', '>=', $cutoffTime);
@@ -100,6 +100,7 @@ class UserTripController extends Controller
                     'places' => $stopNames->values()->all(),
                     'estimated_minutes' => (int) $estimatedMinutes,
                     'depart_time' => $trip->depart_time,
+                    'status' => $trip->status,
                     'vehicle_text' => $vehicleText,
                     'round_no' => $trip->round_no,
                     'seats' => [
@@ -114,17 +115,8 @@ class UserTripController extends Controller
             $todayStr = $nowBkk->toDateString();
             $allQuery = MpTrip::query()
                 ->with(['vehicle.type', 'route'])
-                ->where('status', 'scheduled')
-                ->whereColumn('mp_trips.capacity', '>', 'mp_trips.reserved_seats')
-                ->where(function ($q) use ($todayStr, $cutoffTime) {
-                    $q->whereDate('mp_trips.service_date', '>', $todayStr)
-                      ->orWhere(function ($q2) use ($todayStr, $cutoffTime) {
-                          $q2->whereDate('mp_trips.service_date', $todayStr);
-                          if ($cutoffTime) {
-                              $q2->where('mp_trips.depart_time', '>=', $cutoffTime);
-                          }
-                      });
-                });
+                ->whereIn('status', ['scheduled', 'ongoing'])
+                ->whereRaw("TRUNC(mp_trips.service_date) >= TO_DATE(?, 'YYYY-MM-DD')", [$todayStr]);
 
             if (Schema::hasColumn('mp_trips', 'round_no')) {
                 $allQuery->orderBy('mp_trips.service_date')
@@ -164,6 +156,7 @@ class UserTripController extends Controller
                     'places' => $stopNames->values()->all(),
                     'estimated_minutes' => (int) $estimatedMinutes,
                     'depart_time' => $trip->depart_time,
+                    'status' => $trip->status,
                     'vehicle_text' => $vehicleText,
                     'round_no' => $trip->round_no,
                     'seats' => [

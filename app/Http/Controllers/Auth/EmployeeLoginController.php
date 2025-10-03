@@ -62,7 +62,7 @@ class EmployeeLoginController extends Controller
         if ($loggedIn) {
             $request->session()->regenerate();
             $request->session()->forget('url.intended');
-            return redirect()->route('driver.trip-list');
+            return redirect()->route('driver.schedule');
         }
 
         return back()->withInput($request->only('email'))

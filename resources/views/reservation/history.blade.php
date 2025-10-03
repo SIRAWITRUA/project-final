@@ -113,7 +113,7 @@
                                             ? 'ยกเลิกแล้ว'
                                             : ($r->status === 'completed'
                                                 ? 'เสร็จสิ้น'
-                                                : 'หมดเวลา');
+                                                : 'รอขึ้นรถ');
                                     $statusClass =
                                         $r->status === 'cancelled'
                                             ? 'bg-danger'

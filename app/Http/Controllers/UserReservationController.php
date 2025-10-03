@@ -20,21 +20,35 @@ class UserReservationController extends Controller
     // ตรวจสอบว่ารอบพร้อมจองหรือไม่ ตามกติกาเวลา/สถานะ/ที่นั่ง
     private function isTripBookable(MpTrip $trip, Carbon $nowBkk, int $minLeadMinutes = 20): bool
     {
-        if (($trip->status ?? 'scheduled') !== 'scheduled') {
-            return false;
-        }
+        $status = $trip->status ?? 'scheduled';
         $capacity = (int) ($trip->capacity ?? 0);
         $reserved = (int) ($trip->reserved_seats ?? 0);
+        $left = $capacity - $reserved;
+
+        // อนุญาตให้จองรอบที่กำลังวิ่งได้ (ถ้าเปิดนโยบาย) โดยดูจากที่นั่งคงเหลือ
+        $allowOngoing = (bool) env('RESERVATION_ALLOW_ONGOING', true);
+        if ($status === 'ongoing' && $allowOngoing) {
+            return $left > 0;
+        }
+
+        if ($status !== 'scheduled') {
+            return false;
+        }
         if ($capacity <= $reserved) {
             return false;
         }
         $todayStr = $nowBkk->toDateString();
-        if ($trip->service_date->toDateString() === $todayStr) {
+        $serviceDateStr = method_exists($trip->service_date, 'toDateString') ? $trip->service_date->toDateString() : (string) $trip->service_date;
+        if ($serviceDateStr === $todayStr) {
+            $allowPastToday = (bool) env('RESERVATION_ALLOW_PAST_TODAY', true);
+            if ($allowPastToday) {
+                return $left > 0;
+            }
             $cutoff = $nowBkk->copy()->addMinutes($minLeadMinutes)->format('H:i');
             return strcmp($trip->depart_time, $cutoff) >= 0;
         }
         // อนาคตจองได้, อดีตไม่ได้
-        return strcmp($trip->service_date->toDateString(), $todayStr) > 0;
+        return strcmp($serviceDateStr, $todayStr) > 0;
     }
 
     // แสดงข้อมูลก่อนสร้างการจอง (ใช้ตรวจสอบความพร้อม)
@@ -84,7 +98,8 @@ class UserReservationController extends Controller
                 // ล็อกแถวของ trip เพื่ออัปเดตที่นั่งแบบอะตอมมิก
                 $trip = MpTrip::where('trip_id', $data['trip_id'])->lockForUpdate()->firstOrFail();
                 $nowBkk = Carbon::now('Asia/Bangkok');
-                if (!$this->isTripBookable($trip, $nowBkk)) {
+                $minLead = (int) env('RESERVATION_MIN_LEAD_MINUTES', 0); // ปรับลดเป็น 0 เริ่มต้น เพื่อให้รอบใหม่จองได้ทันที
+                if (!$this->isTripBookable($trip, $nowBkk, $minLead)) {
                     abort(422, 'รอบนี้ไม่พร้อมให้จอง');
                 }
 

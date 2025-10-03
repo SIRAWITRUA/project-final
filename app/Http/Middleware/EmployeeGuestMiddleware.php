@@ -16,7 +16,7 @@ class EmployeeGuestMiddleware
     {
         $guard = Auth::guard('employee');
         if ($guard->check()) {
-            return redirect()->route('driver.trip-list')
+            return redirect()->route('driver.schedule')
                 ->with('info', 'คุณได้เข้าสู่ระบบแล้ว');
         }
 
